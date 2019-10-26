@@ -9,7 +9,8 @@ var serviceAccount = require("./serviceAccountKey.json");
 const {
     getAllScreams,
     postOneScream,
-    getScream
+    getScream,
+    commentOnScream
 } = require('./handlers/screams');
 const {
     signup,
@@ -26,7 +27,7 @@ app.get('/scream/:screamId', getScream);
 // TODO: delete scream
 // TODO: like a scream
 // TODO: unlike a scream
-// TODO: comment on scream
+app.post('/scream/:screamId/comment', FBAuth, commentOnScream);
 
 // users route
 app.post('/signup', signup);
