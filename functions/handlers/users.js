@@ -68,7 +68,7 @@ exports.signup = (req, res) => {
         });
       }
       return res.status(500).json({
-        error: error.code
+        general: "Something went wrong, please try again"
       });
     });
 };
@@ -95,15 +95,12 @@ exports.login = (req, res) => {
       });
     })
     .catch(error => {
+      // auth/wrong-password
+      // auth/user-not-found
       console.error("error login", error);
-      if (error.code === "auth/wrong-password") {
-        return res.status(403).json({
-          general: "wrong credentials, please try again"
-        });
-      } else
-        return res.status(500).json({
-          error: error.code
-        });
+      return res.status(403).json({
+        general: "wrong credentials, please try again"
+      });
     });
 };
 
@@ -140,7 +137,7 @@ exports.getUserDetails = (req, res) => {
           .orderBy("createdAt", "desc")
           .get();
       } else {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: "User not found" });
       }
     })
     .then(data => {
@@ -286,12 +283,13 @@ exports.markNotificationsRead = (req, res) => {
     const notification = db.doc(`/notifications/${notificationId}`);
     batch.update(notification, { read: true });
   });
-  batch.commit()
+  batch
+    .commit()
     .then(() => {
-      return res.json({ message: 'Notifications marked read' });
+      return res.json({ message: "Notifications marked read" });
     })
     .catch(err => {
       console.error(err);
       return res.status(500).json({ error: err.code });
-    })
-}
+    });
+};
