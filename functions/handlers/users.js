@@ -1,7 +1,4 @@
-const {
-  admin,
-  db
-} = require("../util/admin");
+const { admin, db } = require("../util/admin");
 const firebaseConfig = require("../util/firebaseConfig");
 const firebase = require("firebase");
 const {
@@ -21,10 +18,7 @@ exports.signup = (req, res) => {
     handle: req.body.handle
   };
 
-  const {
-    valid,
-    errors
-  } = validateSignupData(newUser);
+  const { valid, errors } = validateSignupData(newUser);
 
   if (!valid) return res.status(400).json(errors);
 
@@ -86,10 +80,7 @@ exports.login = (req, res) => {
     password: req.body.password
   };
 
-  const {
-    valid,
-    errors
-  } = validateLoginData(user);
+  const { valid, errors } = validateLoginData(user);
   if (!valid) return res.status(400).json(errors);
 
   firebase
@@ -135,15 +126,18 @@ exports.addUserDetails = (req, res) => {
     });
 };
 
-
 // Get own user details
 exports.getAuthenticatedUser = (req, res) => {
   let userData = {};
-  db.doc(`/users/${req.user.handle}`).get()
+  db.doc(`/users/${req.user.handle}`)
+    .get()
     .then(doc => {
       if (doc.exists) {
         userData.credentials = doc.data();
-        return db.collection('likes').where('userHandle', '==', req.user.handle).get()
+        return db
+          .collection("likes")
+          .where("userHandle", "==", req.user.handle)
+          .get();
       }
     })
     .then(data => {
@@ -151,16 +145,33 @@ exports.getAuthenticatedUser = (req, res) => {
       data.forEach(doc => {
         userData.likes.push(doc.data());
       });
+      return db
+        .collection("notifications")
+        .where("recipient", "==", req.user.handle)
+        .orderBy("createdAt", "desc")
+        .limit(10)
+        .get();
+    })
+    .then(data => {
+      userData.notifications = [];
+      data.forEach(doc => {
+        userData.notifications.push({
+          recipient: doc.data().recipient,
+          sender: doc.data().sender,
+          createdAt: doc.data().createdAt,
+          screamId: doc.data().screamId,
+          type: doc.data().type,
+          read: doc.data().read,
+          notificationId: doc.id
+        });
+      });
       return res.json(userData);
     })
     .catch(err => {
       console.error(err);
-      return res.status(500).json({
-        error: err.code
-      });
-    })
-}
-
+      return res.status(500).json({ error: err.code });
+    });
+};
 
 // Upload a profile image for the user
 exports.uploadImage = (req, res) => {
